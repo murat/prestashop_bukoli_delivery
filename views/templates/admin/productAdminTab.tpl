@@ -13,7 +13,8 @@
 				<div class="panel">
 					<h3><i class="icon-truck "></i> {l s='Bukoli delivery info' mod='bukolidelivery'}</h3>
 					<div class="bukolidelivery_data">
-						{$bukoli_details->details|escape:'htmlall':'UTF-8'}
+						{$bukoli_details->details|escape:'htmlall':'UTF-8'}<br>
+						{str_replace('\\', '', $bukoli_details->response|escape:'htmlall':'UTF-8')}
 					</div>
 				</div>
 			</div>
@@ -22,7 +23,8 @@
 		<br />
 		<fieldset>
 			<legend><img src="../img/admin/tab-shipping.gif" /> {l s='Bukoli delivery info' mod='bukolidelivery'}</legend>
-			{$bukoli_details->details|escape:'htmlall':'UTF-8'}
+			{$bukoli_details->details|escape:'htmlall':'UTF-8'}<br>
+			{str_replace('\\', '', $bukoli_details->response|escape:'htmlall':'UTF-8')}
 		</fieldset>
 	{/if}
 {/if}

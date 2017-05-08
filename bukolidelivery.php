@@ -65,7 +65,8 @@ class BukoliDelivery extends CarrierModule
 			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'bukoli_details` (
 				`id_bukoli_details` INT( 11 ) UNSIGNED NOT NULL AUTO_INCREMENT,
 				`id_order` INT( 11 ) UNSIGNED,
-				`details` TEXT,
+                `details` TEXT,
+				`response` TEXT,
 				`date_upd` DATETIME NOT NULL,
 				PRIMARY KEY (`id_bukoli_details`)
 			) ENGINE = '._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8
@@ -233,10 +234,11 @@ class BukoliDelivery extends CarrierModule
             }
 
             $bukoli_details = BukoliDetails::loadByOrderId($order->id);
-            BukoliDetails::pushOrderToService($params, $this->context->cookie);
             if (!$bukoli_details->id) {
                 $bukoli_details->id_order = (int)$order->id;
                 $bukoli_details->details = pSQL($this->context->cookie->bukoli_details);
+                $bukoli_details->response = pSQL(BukoliDetails::pushOrderToService($params, $this->context->cookie));
+
                 if ($bukoli_details->add()) {
                     unset($this->context->cookie->bukoli_details);
                 }

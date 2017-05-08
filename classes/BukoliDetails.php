@@ -20,6 +20,7 @@ class BukoliDetails extends ObjectModel
     public $id;
     public $id_order;
     public $details;
+    public $response;
     public $date_upd;
 
     public static $definition = array(
@@ -28,6 +29,7 @@ class BukoliDetails extends ObjectModel
         'fields' => array(
             'id_order' => array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),
             'details'  => array('type' => self::TYPE_STRING, 'validate' => 'isMessage'),
+            'response'  => array('type' => self::TYPE_STRING),
             'date_upd' => array('type' => self::TYPE_DATE, 'validate' => 'isDateFormat'),
         ),
     );
@@ -47,7 +49,7 @@ class BukoliDetails extends ObjectModel
     public static function pushOrderToService($order, $cookie)
     {
         $customerPassword = 'P2LGDNH3SY4MU2Z5AFKV';
-        $RequestOrderId = $order['objOrder']->reference;
+        $RequestOrderId = $order['objOrder']->secure_key;
         $IrsaliyeNo = $order['objOrder']->reference;
         $BukoliPoint = $cookie->bukoli_details;
         $EndUserCode = $cookie->id_customer;
@@ -56,10 +58,10 @@ class BukoliDetails extends ObjectModel
         $EndUserEmail = $cookie->email;
         $OrderDate = date('YmdHis');
 
-        // var_dump($OrderDate); die;
+        // var_dump($order); die;
 
-        Bukoli::init($customerPassword);
-        // Bukoli::init($customerPassword, 'https://Bukoli.borusan.com/IntegrationServiceV2/JetonOrderService.asmx?wsdl');
+        // Bukoli::init($customerPassword);
+        Bukoli::init($customerPassword, 'https://Bukoli.borusan.com/IntegrationServiceV2/JetonOrderService.asmx?wsdl');
 
         $orderInsert = new OrderInsert();
 
@@ -78,7 +80,9 @@ class BukoliDetails extends ObjectModel
         $endUser->setEndUserCode($EndUserCode);
         $endUser->setFirstName($EndUserFirstName);
         $endUser->setLastName($EndUserLastName);
+        $endUser->setPhone($EndUserPhone);
         $endUser->setEmail($EndUserEmail);
+        $endUser->setBirthDate(new DateTime('2000-01-13', Bukoli::getDateTimeZone()));
 
         $orderInfo->setEndUserData($endUser);
 
@@ -87,29 +91,35 @@ class BukoliDetails extends ObjectModel
         try {
             $response = $orderInsert->request();
             if ($response->getStatus() == 1) {
-                // Success
-                $result = "";
-                $result .= 'Status: ' . $response->getStatus() . '<br/>';
-                $result .= 'Message: ' . $response->getMessage() . '<br/>';
-                $result .= 'JetonOrderId: ' . $response->getJetonOrderId() . '<br/>';
-                $result .= 'TrackingNo: ' . $response->getTrackingNo() . '<br/>';
-                var_dump($result);
-                die;
+                // // Success
+                // $result = "";
+                // $result .= 'Status: ' . $response->getStatus() . '<br/>';
+                // $result .= 'Message: ' . $response->getMessage() . '<br/>';
+                // $result .= 'JetonOrderId: ' . $response->getJetonOrderId() . '<br/>';
+                // $result .= 'TrackingNo: ' . $response->getTrackingNo() . '<br/>';
+                // var_dump($result);
+                // die;
+                return json_encode(json_encode([
+                    'Jeton Order ID' => $response->getJetonOrderId(),
+                    'Tracking No' => $response->getTrackingNo()
+                ]));
             } else {
-                // Fail
-                $error = "";
-                $error .= 'Status: ' . $response->getStatus() . '<br/>';
-                $error .= 'Message: ' . $response->getMessage() . '<br/>';
-                $error .= 'JetonOrderId: ' . $response->getJetonOrderId() . '<br/>';
-                $error .= 'TrackingNo: ' . $response->getTrackingNo() . '<br/>';
-                var_dump($error);
-                die;
+                // // Fail
+                // $error = "";
+                // $error .= 'Status: ' . $response->getStatus() . '<br/>';
+                // $error .= 'Message: ' . $response->getMessage() . '<br/>';
+                // $error .= 'JetonOrderId: ' . $response->getJetonOrderId() . '<br/>';
+                // $error .= 'TrackingNo: ' . $response->getTrackingNo() . '<br/>';
+                // var_dump($error);
+                // die;
+                return $response->getMessage();
             }
         } catch (SoapFault $e) {
             // Soap Exception
-            $error = str_replace(PHP_EOL, '<br/>', $e->getMessage());
-            echo($error);
-            die;
+            // $error = str_replace(PHP_EOL, '<br/>', $e->getMessage());
+            // echo($error);
+            // die;
+            return $e->getMessage();
         }
     }
 }
