@@ -163,6 +163,86 @@ class BukoliDelivery extends CarrierModule
         return true;
     }
 
+    public function getContent()
+    {
+        $output = null;
+
+        if (Tools::isSubmit('submit'.$this->name))
+        {
+            $bukolidelivery = strval(Tools::getValue('BUKOLIDELIVERY'));
+            if (!$bukolidelivery
+              || empty($bukolidelivery)
+              || !Validate::isGenericName($bukolidelivery)) {
+                $output .= $this->displayError($this->l('Invalid Configuration value'));
+            } else {
+                Configuration::updateValue('BUKOLIDELIVERY', $bukolidelivery);
+                $output .= $this->displayConfirmation($this->l('Settings updated'));
+            }
+        }
+        return $output.$this->displayForm();
+    }
+
+    public function displayForm()
+    {
+        // Get default language
+        $default_lang = (int)Configuration::get('PS_LANG_DEFAULT');
+
+        // Init Fields form array
+        $fields_form[0]['form'] = array(
+            'legend' => array(
+                'title' => $this->l('Settings'),
+            ),
+            'input' => array(
+                array(
+                    'type' => 'text',
+                    'label' => $this->l('Customer password'),
+                    'name' => 'BUKOLIDELIVERY',
+                    'size' => 55,
+                    'required' => true
+                )
+            ),
+            'submit' => array(
+                'title' => $this->l('Save'),
+                'class' => 'btn btn-default pull-right'
+            )
+        );
+
+        $helper = new HelperForm();
+
+        // Module, token and currentIndex
+        $helper->module = $this;
+        $helper->name_controller = $this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
+
+        // Language
+        $helper->default_form_language = $default_lang;
+        $helper->allow_employee_form_lang = $default_lang;
+
+        // Title and toolbar
+        $helper->title = $this->displayName;
+        $helper->show_toolbar = true;        // false -> remove toolbar
+        $helper->toolbar_scroll = true;      // yes - > Toolbar is always visible on the top of the screen.
+        $helper->submit_action = 'submit'.$this->name;
+        $helper->toolbar_btn = array(
+            'save' =>
+            array(
+                'desc' => $this->l('Save'),
+                'href' => AdminController::$currentIndex.'&configure='.$this->name.'&save'.$this->name.
+                '&token='.Tools::getAdminTokenLite('AdminModules'),
+            ),
+            'back' => array(
+                'href' => AdminController::$currentIndex.'&token='.Tools::getAdminTokenLite('AdminModules'),
+                'desc' => $this->l('Back to list')
+            )
+        );
+
+        // Load current value
+        $helper->fields_value['BUKOLIDELIVERY'] = Configuration::get('BUKOLIDELIVERY');
+
+        return $helper->generateForm($fields_form);
+    }
+
     protected function deleteCarrier()
     {
         $id_carrier = (int)Configuration::get(self::CONF_CARRIER_ID);
@@ -237,7 +317,7 @@ class BukoliDelivery extends CarrierModule
             if (!$bukoli_details->id) {
                 $bukoli_details->id_order = (int)$order->id;
                 $bukoli_details->details = pSQL($this->context->cookie->bukoli_details);
-                $bukoli_details->response = pSQL(BukoliDetails::pushOrderToService($params, $this->context->cookie));
+                $bukoli_details->response = pSQL(BukoliDetails::pushOrderToService($params, $this->context->cookie, Configuration::get('BUKOLIDELIVERY')));
 
                 if ($bukoli_details->add()) {
                     unset($this->context->cookie->bukoli_details);
@@ -250,8 +330,12 @@ class BukoliDelivery extends CarrierModule
     {
         $bukoli_details = BukoliDetails::loadByOrderId($params['id_order']);
 
+        $result = json_decode(stripslashes($bukoli_details->response));
+
         $this->context->smarty->assign(array(
             'bukoli_details' => $bukoli_details,
+            'order' => $result->ORDER,
+            'track' => $result->TRACK,
             'ps_version' => (float)_PS_VERSION_
         ));
 
