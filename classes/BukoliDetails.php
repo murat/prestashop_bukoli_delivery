@@ -49,7 +49,7 @@ class BukoliDetails extends ObjectModel
     public static function pushOrderToService($order, $cookie)
     {
         $customerPassword = 'P2LGDNH3SY4MU2Z5AFKV';
-        $RequestOrderId = $order['objOrder']->secure_key;
+        $RequestOrderId = $order['objOrder']->reference; // $order['objOrder']->secure_key;
         $IrsaliyeNo = $order['objOrder']->reference;
         $BukoliPoint = $cookie->bukoli_details;
         $EndUserCode = $cookie->id_customer;
