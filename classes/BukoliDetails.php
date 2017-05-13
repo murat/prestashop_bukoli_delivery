@@ -46,10 +46,10 @@ class BukoliDetails extends ObjectModel
         }
     }
 
-    public static function pushOrderToService($order, $cookie)
+    public static function pushOrderToService($order, $cookie, $config)
     {
-        $customerPassword = 'P2LGDNH3SY4MU2Z5AFKV';
-        $RequestOrderId = $order['objOrder']->secure_key;
+        $customerPassword = $config;
+        $RequestOrderId = $order['objOrder']->reference; // $order['objOrder']->secure_key;
         $IrsaliyeNo = $order['objOrder']->reference;
         $BukoliPoint = $cookie->bukoli_details;
         $EndUserCode = $cookie->id_customer;
@@ -104,10 +104,7 @@ class BukoliDetails extends ObjectModel
                 // $result .= 'TrackingNo: ' . $response->getTrackingNo() . '<br/>';
                 // var_dump($result);
                 // die;
-                return json_encode(json_encode([
-                    'Jeton Order ID' => $response->getJetonOrderId(),
-                    'Tracking No' => $response->getTrackingNo()
-                ]));
+                return '{"ORDER": "' . $response->getJetonOrderId() . '",' . '"TRACK": "' . $response->getTrackingNo() . '"}';
             } else {
                 // // Fail
                 // $error = "";
