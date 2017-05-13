@@ -86,6 +86,11 @@ class BukoliDetails extends ObjectModel
 
         $orderInfo->setEndUserData($endUser);
 
+        $orderDetail = new IntegrationOrderDetailInfo();
+        $orderDetail->setDeci(1);
+        $orderDetail->setBarcode($RequestOrderId);
+        $orderInfo->setIntegrationOrderDetailInfoArr([$orderDetail]);
+
         $orderInsert->setIntegrationOrderInfo($orderInfo);
 
         try {
